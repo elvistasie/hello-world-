@@ -16,7 +16,24 @@ jobs:
               --stack-name myStack \
               --region us-east-1
 
+  configure_infrastructure:
+    docker:
+      - image: python:3.7-alpine3.11
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - "84:6f:66:c8:0b:4d:e8:60:f5:06:2f:fa:89:f8:60:26"
+      - run:
+          name: Install Ansible
+          command: |
+            apk add --update ansible
+      - run:
+          name: Run Playbook and Configure server
+          command: |
+            ansible-playbook -i inventory.txt main.yml
 workflows:
   myworkflow:
     jobs:
-      - create_infrastructure
+      # - create_infrastructure
+      - configure_infrastructure
