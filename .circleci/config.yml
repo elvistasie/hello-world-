@@ -2,6 +2,14 @@ version: 2.1
 
 orbs:
 
+commands:
+  destroy_environment:
+    steps:
+      - run:
+          name: Destroy environment
+          when: on_fail
+          command: |
+            aws cloudformation delete-stack --stack-name myStack-${CIRCLE_WORKFLOW_ID:0:7}
 jobs:
 
   create_infrastructure:
@@ -14,7 +22,7 @@ jobs:
           command: |
             aws cloudformation deploy \
               --template-file template.yml \
-              --stack-name myStack \
+              --stack-name myStack-${CIRCLE_WORKFLOW_ID:0:7} \
               --region us-east-1
 
   configure_infrastructure:
@@ -34,27 +42,10 @@ jobs:
           command: |
             ansible-playbook -i inventory.txt main.yml
 
-  smoke_test:
-    docker:
-      - image: alpine:latest
-    steps:
-      - run: apk add --update curl
-      - run:
-          name: Test job
-          command: return 1
-      - destroy_environment
 
-  destroy_environment:
-    steps:
-      - run:
-          name: Destroy environment
-          when: on_fail
-          command: |
-            aws cloudformation delete-stack --stack-name myStack
 
 workflows:
   myworkflow:
     jobs:
       - create_infrastructure
       # - configure_infrastructure
-      - smoke_test
