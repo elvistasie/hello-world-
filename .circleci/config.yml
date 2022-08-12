@@ -24,9 +24,17 @@ jobs:
               --template-file template.yml \
               --stack-name myStack-${CIRCLE_WORKFLOW_ID:0:7} \
               --region us-east-1
-       - run: return 1
+      - run: return 1
+
+  smoke_test:
+    docker:
+      - image: alpine:latest
+    steps:
+      - run:
+          name: Test job
+          # Fail the job intentionally to simulate an error.
+          command:  return 1
       - destroy_environment
-        when: on_fail
 
   configure_infrastructure:
     docker:
@@ -51,4 +59,5 @@ workflows:
   myworkflow:
     jobs:
       - create_infrastructure
+      - smoke_test
       # - configure_infrastructure
